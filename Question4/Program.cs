@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Question4
 {
@@ -18,13 +19,15 @@ namespace Question4
             var patients = Enumerable.Range(1, s_count).Select(pid => new { Id = pid, Surname = string.Format("Иванов{0}", pid) }).ToList();
 
             // общая часть: фильтруем по времени приёмы, выбираем уникальные PatientId
-
+            //Сложность по времени: O(R) + O(P * log P) (линейный поиск по приёмам, сортировка PatientId)
             var selectIds = receptions
                 .Where(rec => rec.ReceptionStart.CompareTo(s_yearLimit) < 0)
                 .Select(rec => rec.PatientId)
                 .Distinct();
 
-            //вариант 1: ищем пациентов линейным поиском (считаю этот вариант плохим)
+            //вариант 1: по каждому Id ищем пациента линейным поиском. Нет ограничений на порядок и непрерывность Id пациентов.
+            //Сложность по времени: O(R) + O(P * P)
+            //Дополнительная память: O(1)
 
             Console.WriteLine("1)");
             GetResult(() => selectIds
@@ -34,6 +37,8 @@ namespace Question4
 
             //вариант 2:  ищем пациентов используя знание, что их Id возрастают на 1, начиная с 1, 
             // то есть выбираем каждого пациента по индексу
+            //Сложность по времени: O(R) + O(P * log P)
+            //Дополнительная память: O(1)
 
             Console.WriteLine("2)");
             GetResult(() => selectIds
@@ -41,13 +46,74 @@ namespace Question4
                 .Where(pat => pat != null)
                 .ToList<object>());
 
-            //вариант 3:  ищем пациентов используя словарь, в который их предварительно загрузили (ключ: Id) 
+            //вариант 3: ищем пациентов используя словарь, в который их предварительно загрузили (ключ: Id) 
+            //Сложность по времени:  O(R) + O(P * log P)
+            //Дополнительная память: O(P)
 
             Console.WriteLine("3)");
             GetResult(() => {
                 var dict = patients.ToDictionary(pat => pat.Id);
                 return selectIds
                 .Select(patId => dict[patId])
+                .Where(pat => pat != null)
+                .ToList<object>();
+            });
+
+            //вариант 4:  предполагаем, что пациенты предварительно отсортированы, как это следует из условия, но непрерывность Id не гарантирована.
+            //Пациентов находим бинарным поиском
+            //Сложность по времени: O(P * log P)
+            //Дополнительная память: O(1)
+
+            Console.WriteLine("4)");
+            GetResult(() => {
+                return selectIds
+                .Select(patId => {
+                    var l = 0;
+                    var r = patients.Count - 1;
+                    while(l < r)
+                    {
+                        int m = (l + r) / 2;
+                        if (patients[m].Id < patId)
+                        {
+                            l = m + 1;
+                        }
+                        else
+                        {
+                            r = m;
+                        }
+                    }
+                    return patients[l].Id == patId ? patients[l] : null;
+                })
+                .Where(pat => pat != null)
+                .ToList<object>();
+            });
+
+            //вариант 5:  не предполагаем, что пациенты предварительно отсортированы, поэтому сначала сортируем. Непрерывность Id не гарантирована.
+            //Пациентов находим бинарным поиском
+            //Сложность по времени: O(P * log P)
+            //Дополнительная память: O(P)
+
+            Console.WriteLine("5)");
+            GetResult(() => {
+                var patients1 = patients.OrderBy(p => p.Id).ToList();
+                return selectIds
+                .Select(patId => {
+                    var l = 0;
+                    var r = patients1.Count - 1;
+                    while (l < r)
+                    {
+                        int m = (l + r) / 2;
+                        if (patients1[m].Id < patId)
+                        {
+                            l = m + 1;
+                        }
+                        else
+                        {
+                            r = m;
+                        }
+                    }
+                    return patients1[l].Id == patId ? patients1[l] : null;
+                })
                 .Where(pat => pat != null)
                 .ToList<object>();
             });
