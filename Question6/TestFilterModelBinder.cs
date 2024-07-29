@@ -51,7 +51,15 @@ namespace Question6
 
         public ValueProviderResult GetValue(string key)
         {
-            return new ValueProviderResult(Context.Request.Query["YearMonth"] is StringValues sv && sv.Count > 0 ? sv[0] : string.Empty);
+            if (Context.Request.Method == HttpMethods.Get)
+            {
+                return new ValueProviderResult(Context.Request.Query["YearMonth"] is StringValues sv && sv.Count > 0 ? sv[0] : string.Empty);
+            }
+            if (Context.Request.Method == HttpMethods.Post)
+            {
+                return new ValueProviderResult(Context.Request.Form["YearMonth"] is StringValues sv && sv.Count > 0 ? sv[0] : string.Empty);
+            }
+            return new ValueProviderResult(string.Empty);
         }
     }
 }
