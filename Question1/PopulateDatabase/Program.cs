@@ -10,10 +10,10 @@ namespace PopulateDatabase
         private const string s_connectionString = "Server=.\\sqlexpress;Database=IDENTClinic4;Trusted_Connection=True;Encrypt=no;";
         private const int s_count = 50000;
         private const double s_doctorsRatio = .01;
-        private const int s_minDoctorsReceptions = 10;
-        private const int s_maxDoctorsReceptions = 200;
+        private const int s_minDoctorsReceptions = 1000;
+        private const int s_maxDoctorsReceptions = 20000;
         private const int s_100yearsDays = 36525;
-        private const int s_18yearsMinutes = 525960;
+        private const int s_18yearsMinutes = 9467280;
         static void Main(string[] args)
         {
             Random rnd = new();
@@ -152,6 +152,10 @@ INSERT INTO Receptions (ID, ID_Doctors, ID_Patients, StartDateTime) VALUES (@ID,
             {
                 sqlTransaction?.Rollback();
                 Console.WriteLine(ex);
+            }
+            finally
+            {
+                connection.Close();
             }
         }
     }
