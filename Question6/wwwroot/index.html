@@ -6,21 +6,24 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         $(document).ready(() => {
-            let url = document.createElement('a');
-            url.href = $("#postLink").attr("href");
-            $("#postLink").text(url.href);
-            $("#postLink").click(e => {
-                $("#postLink").attr("href", "javascript:void(0)");
+            let url = document.createElement("a");
+            let postLink = $("#postLink");
+            url.href = postLink.attr("href");
+            postLink.text(url.href); //для наглядности ставим в текст саму ссылку
+            postLink.click(() => {
+                postLink.attr("href", "javascript:void(0)");
                 $.post(url.pathname, url.search.substring(1))
                     .done(res => {
-                        $("#postLink").attr("href", url.href);
                         alert(res);
+                    })
+                    .always(() => {
+                        postLink.attr("href", url.href);
                     });
             });
         });
     </script>
 </head>
 <body>
-    <a id="postLink" href="/Home/Test?YearMonth=07.2024"></a>
+    <a id="postLink" href="/Home/Test?YearMonth=07.2024&param1=qq"></a>
 </body>
 </html>

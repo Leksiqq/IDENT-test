@@ -16,8 +16,6 @@ namespace Question6
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            Console.WriteLine(app.ApplicationServices.GetService<IWebHostEnvironment>().WebRootPath);
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

@@ -1,0 +1,27 @@
+USE [IDENTClinic4]
+GO
+
+/****** Object:  Table [dbo].[Patients]    Script Date: 30.07.2024 13:12:46 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Patients](
+	[ID] [int] NOT NULL,
+	[Card] [varchar](50) NOT NULL,
+ CONSTRAINT [PK_Patients] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Patients]  WITH CHECK ADD  CONSTRAINT [FK_Patients_Persons] FOREIGN KEY([ID])
+REFERENCES [dbo].[Persons] ([ID])
+GO
+
+ALTER TABLE [dbo].[Patients] CHECK CONSTRAINT [FK_Patients_Persons]
+GO
+
