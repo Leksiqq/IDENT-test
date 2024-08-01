@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Question3", "Question3\Ques
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Question6", "Question6\Question6.csproj", "{DCBABC90-9E2D-4DBB-AB12-00F381ED5EDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopulateDatabase", "Question1\PopulateDatabase\PopulateDatabase.csproj", "{AC84BA0F-F097-4AB2-B0F7-623B071EF81D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopulateDatabase", "Question2\PopulateDatabase\PopulateDatabase.csproj", "{AC84BA0F-F097-4AB2-B0F7-623B071EF81D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestQueries", "Question1\TestQueries\TestQueries.csproj", "{548BFECE-A1C8-4128-A093-89C08DFB5877}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestQueries", "Question2\TestQueries\TestQueries.csproj", "{548BFECE-A1C8-4128-A093-89C08DFB5877}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
