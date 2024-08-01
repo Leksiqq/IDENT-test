@@ -44,7 +44,7 @@ namespace Question4
                 //Сложность по времени: O(R) + O(P)
                 //Дополнительная память: O(P)
 
-                Console.WriteLine("2)");
+                Console.Write("2) ");
                 GetResult(() => selectIds
                     .Select(patId => patients[patId - 1])
                     .Where(pat => pat != null)
@@ -54,7 +54,7 @@ namespace Question4
                 //Сложность по времени:  O(R) + O(P)
                 //Дополнительная память: O(P)
 
-                Console.WriteLine("3)");
+                Console.Write("3) ");
                 GetResult(() =>
                 {
                     var dict = patients.ToDictionary(pat => pat.Id);
@@ -70,7 +70,7 @@ namespace Question4
                 //Сложность по времени: O(R) + O(P * log P)
                 //Дополнительная память: O(P)
 
-                Console.WriteLine("4)");
+                Console.Write("4) ");
                 GetResult(() =>
                 {
                     return selectIds
@@ -101,7 +101,7 @@ namespace Question4
                 //Сложность по времени: O(R) + O(P * log P)
                 //Дополнительная память: O(P)
 
-                Console.WriteLine("5)");
+                Console.Write("5) ");
                 GetResult(() =>
                 {
                     var patients1 = patients.OrderBy(p => p.Id).ToList();
@@ -130,7 +130,7 @@ namespace Question4
 
                 // Вариант 6: полагая, что Distinct() сделан через HashSet, реализуем Distinct() сами 
                 // через HashSet, который теперь в наших руках. Проходим по клиентам и выбираем тех, которые в нём.
-                Console.WriteLine("6)");
+                Console.Write("6) ");
                 GetResult(() =>
                 {
                     HashSet<int> hs = new();
