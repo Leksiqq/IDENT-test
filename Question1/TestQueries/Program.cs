@@ -16,104 +16,6 @@ namespace TestQueries
                 connection.Open();
                 SqlCommand command = connection.CreateCommand();
                 command.CommandText = @"
-with counts as (
-select count(*) as 'Cnt', CONVERT(DATE, StartDateTime) AS 'Day' from receptions
-group by CONVERT(DATE, StartDateTime)
-)
-select Cnt, Day from counts 
-where 
-	Day >= cast('2015-01-01' as date)
-	and Day < cast('2016-01-01' as date)
-order by Day
-";
-
-                List<DayCount> list1 = new();
-
-                DateTime start = DateTime.Now;
-                Console.WriteLine("1.1)");
-                SqlDataReader reader = command.ExecuteReader();
-                Console.WriteLine("done at {0}", DateTime.Now - start);
-                while (reader.Read())
-                {
-                    list1.Add(new DayCount { Day = reader.GetDateTime(1), Count = reader.GetInt32(0) });
-                }
-                reader.Close();
-                Console.WriteLine("count rows: {0}, sum: {1}", list1.Count, list1.Select(x => x.Count).Sum());
-
-                command.CommandText = @"
-with days as (
-select distinct CONVERT(DATE, StartDateTime) AS 'Day' from receptions 
-where 
-	StartDateTime >= cast('2015-01-01 00:00:00.000' as datetime)
-	and StartDateTime < cast('2016-01-01 00:00:00.000' as datetime)
-)
-select count(*) as 'Cnt', days.day as 'Day' from receptions inner join days 
-on CONVERT(DATE, Receptions.StartDateTime)=days.day group by days.day
-order by Day
-";
-                List<DayCount> list2 = new();
-
-                start = DateTime.Now;
-                Console.WriteLine("1.2)");
-                reader = command.ExecuteReader();
-                Console.WriteLine("done at {0}", DateTime.Now - start);
-                while (reader.Read())
-                {
-                    list2.Add(new DayCount { Day = reader.GetDateTime(1), Count = reader.GetInt32(0) });
-                }
-                reader.Close();
-                Console.WriteLine("count rows: {0}, sum: {1}", list2.Count, list2.Select(x => x.Count).Sum());
-
-                command.CommandText = @"
-with days as (
-select distinct CONVERT(DATE, StartDateTime) AS 'Day' from receptions 
-where 
-	StartDateTime between 
-cast('2015-01-01 00:00:00.000' as datetime)
-and DATEADD(ms, -1, cast('2016-01-01 00:00:00.000' as datetime))
-)
-select count(*) as 'Cnt', days.day as 'Day' from receptions inner join days 
-on CONVERT(DATE, Receptions.StartDateTime)=days.day group by days.day
-order by Day
-";
-                List<DayCount> list3 = new();
-
-                start = DateTime.Now;
-                Console.WriteLine("1.3)");
-                reader = command.ExecuteReader();
-                Console.WriteLine("done at {0}", DateTime.Now - start);
-                while (reader.Read())
-                {
-                    list3.Add(new DayCount { Day = reader.GetDateTime(1), Count = reader.GetInt32(0) });
-                }
-                reader.Close();
-                Console.WriteLine("count rows: {0}, sum: {1}", list3.Count, list3.Select(x => x.Count).Sum());
-
-                command.CommandText = @"
-with counts as (
-select count(*) as 'Cnt', CONVERT(DATE, StartDateTime) AS 'Day' from receptions
-group by CONVERT(DATE, StartDateTime)
-)
-select Cnt, Day from counts 
-where 
-	Day between cast('2015-01-01' as date)
-	and cast('2015-12-31' as date)
-order by Day
-";
-                List<DayCount> list4 = new();
-
-                start = DateTime.Now;
-                Console.WriteLine("1.4)");
-                reader = command.ExecuteReader();
-                Console.WriteLine("done at {0}", DateTime.Now - start);
-                while (reader.Read())
-                {
-                    list4.Add(new DayCount { Day = reader.GetDateTime(1), Count = reader.GetInt32(0) });
-                }
-                reader.Close();
-                Console.WriteLine("count rows: {0}, sum: {1}", list4.Count, list4.Select(x => x.Count).Sum());
-
-                command.CommandText = @"
 with days as (
 select dateadd(day, value, cast('2015-01-01' as date)) as 'day' from generate_series(0, 364, 1)
 )
@@ -123,9 +25,9 @@ order by Day
 ";
                 List<DayCount> list5 = new();
 
-                start = DateTime.Now;
+                DateTime start = DateTime.Now;
                 Console.WriteLine("1.5)");
-                reader = command.ExecuteReader();
+                SqlDataReader reader = command.ExecuteReader();
                 Console.WriteLine("done at {0}", DateTime.Now - start);
                 while (reader.Read())
                 {
@@ -211,6 +113,43 @@ persons per1
                 }
                 reader.Close();
                 Console.WriteLine("count rows: {0}", list7.Count);
+
+                command.CommandText = @"
+select 
+d.id as 'id_doc',
+per.lastname as 'doc_lastname', 
+p.id as 'pat_id',
+per1.lastname as 'pat_lastname' 
+from
+doctors d
+inner join 
+patients p
+	on d.id=(select top 1 id_doctors from receptions where id_patients=p.id and StartDateTime=(select max(StartDateTime) from receptions where id_patients=p.id))
+inner join
+persons per
+	on d.id=per.id
+inner join
+persons per1	
+	on p.id=per1.id
+";
+                List<LastReception> list8 = new();
+
+                start = DateTime.Now;
+                Console.WriteLine("2.3)");
+                reader = command.ExecuteReader();
+                Console.WriteLine("done at {0}", DateTime.Now - start);
+                while (reader.Read())
+                {
+                    list6.Add(new LastReception
+                    {
+                        IdDoctor = reader.GetInt32(0),
+                        DoctorLastName = reader.GetString(1),
+                        IdPatient = reader.GetInt32(2),
+                        PatientLastName = reader.GetString(3),
+                    });
+                }
+                reader.Close();
+                Console.WriteLine("count rows: {0}", list6.Count);
 
             }
             catch (SqlException ex)
