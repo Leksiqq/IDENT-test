@@ -1,0 +1,1 @@
+exec proc GetDailyReceptionsNum '20150101', '20151231'

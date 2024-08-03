@@ -131,16 +131,25 @@ INSERT INTO Receptions (ID, ID_Doctors, ID_Patients, StartDateTime) VALUES (@ID,
                 {
                     for (int i = rnd.Next(s_minDoctorsReceptions, s_maxDoctorsReceptions + 1); i >= 0; --i) 
                     {
-                        int patientId = rnd.Next(1, s_count);
-                        if(patientId != id)
+                        int patientId;
+                        do
                         {
-                            insertReceptionCommand.Parameters["@ID"].Value = ++receptionId;
-                            insertReceptionCommand.Parameters["@ID_Doctors"].Value = id;
-                            insertReceptionCommand.Parameters["@ID_Patients"].Value = patientId;
-                            insertReceptionCommand.Parameters["@StartDateTime"].Value = 
-                                DateTime.Now.AddMinutes(-rnd.Next(s_18yearsMinutes));
-                            insertReceptionCommand.ExecuteNonQuery();
+                            patientId = rnd.Next(1, s_count);
                         }
+                        while (patientId == id);
+
+                        DateTime startDateTime;
+                        do
+                        {
+                            startDateTime = DateTime.Now.AddMinutes(-rnd.Next(s_18yearsMinutes));
+                        }
+                        while (startDateTime.Month == 1 && startDateTime.Day < 8);
+
+                        insertReceptionCommand.Parameters["@ID"].Value = ++receptionId;
+                        insertReceptionCommand.Parameters["@ID_Doctors"].Value = id;
+                        insertReceptionCommand.Parameters["@ID_Patients"].Value = patientId;
+                        insertReceptionCommand.Parameters["@StartDateTime"].Value = startDateTime;
+                        insertReceptionCommand.ExecuteNonQuery();
                     }
                 }
                 sqlTransaction.Commit();
