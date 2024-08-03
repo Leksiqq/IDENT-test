@@ -26,24 +26,47 @@ namespace TestQueries
 
                 command.CommandText = @"
 with days as (
-select dateadd(day, value, cast('2015-01-01' as date)) as 'day' from generate_series(0, 364, 1)
+  select dateadd(day, value, cast('2015-01-01' as date)) as 'day' from   generate_series(0, 364, 1)
 )
-select count(*) as 'Cnt', days.day as 'Day' from receptions inner join days 
-on CONVERT(DATE, Receptions.StartDateTime)=days.day group by days.day
+select days.day as 'Day', count(id) as 'Cnt' from 
+days 
+  left join 
+receptions
+  on 
+  DATEPART(year, Receptions.StartDateTime)=DATEPART(year, days.day)
+  and DATEPART(DAYOFYEAR, Receptions.StartDateTime)=DATEPART(DAYOFYEAR, days.day)
+
+group by days.day
 order by Day
 ";
                 List<DayCount> list5 = new();
 
                 start = DateTime.Now;
-                Console.WriteLine("1)");
+                Console.WriteLine("1.1)");
                 reader = await command.ExecuteReaderAsync();
                 Console.WriteLine("reader executed at {0}", DateTime.Now - start);
                 while (await reader.ReadAsync())
                 {
-                    list5.Add(new DayCount { Day = reader.GetDateTime(1), Count = reader.GetInt32(0) });
+                    list5.Add(new DayCount { Day = reader.GetDateTime(0), Count = reader.GetInt32(1) });
                 }
                 reader.Close();
                 Console.WriteLine("done at {0}, count rows: {1}, sum: {2}", DateTime.Now - start, list5.Count, list5.Select(x => x.Count).Sum());
+
+                command.CommandText = @"
+EXEC GetDailyReceptionsNum '20150101', '20151231'
+";
+                List<DayCount> list4 = new();
+
+                start = DateTime.Now;
+                Console.WriteLine("1.2)");
+                reader = await command.ExecuteReaderAsync();
+                Console.WriteLine("reader executed at {0}", DateTime.Now - start);
+                while (await reader.ReadAsync())
+                {
+                    list4.Add(new DayCount { Day = reader.GetDateTime(0), Count = reader.GetInt32(1) });
+                }
+                reader.Close();
+                Console.WriteLine("done at {0}, count rows: {1}, sum: {2}", DateTime.Now - start, list5.Count, list4.Select(x => x.Count).Sum());
 
                 command.CommandText = @"
 select
