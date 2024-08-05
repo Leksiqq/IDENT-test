@@ -25,7 +25,7 @@ namespace Question4
                 .Select(rec => rec.PatientId)
                 .Distinct();
 
-            List<TimeSpan> elapsedSums = Enumerable.Range(0, 6).Select(i => TimeSpan.Zero).ToList();
+            List<TimeSpan> elapsedSums = Enumerable.Range(0, 7).Select(i => TimeSpan.Zero).ToList();
             for (int i = 0; i < warmingPassesCount + passesCount; ++i)
             {
                 Console.WriteLine("pass: {0} {1}", i + 1, i < warmingPassesCount ? "warming" : string.Empty);
@@ -148,9 +148,21 @@ namespace Question4
                     }
                     return ans;
                 }, i < warmingPassesCount ? null : elapsedSums, 5);
+                // Вариант 6: полагая, что Distinct() сделан через HashSet, реализуем Distinct() сами 
+                // через HashSet, который теперь в наших руках. Проходим по клиентам и выбираем тех, которые в нём.
+                Console.Write("7) ");
+                GetResult(() =>
+                {
+                    HashSet<int> hs = new();
+                    foreach (var rec in receptions.Where(rec => rec.ReceptionStart.CompareTo(s_yearLimit) < 0))
+                    {
+                        hs.Add(rec.PatientId);
+                    }
+                    return patients.AsParallel().Where(p => hs.Contains(p.Id)).ToList<object>();
+                }, i < warmingPassesCount ? null : elapsedSums, 6);
             }
             Console.WriteLine("avg elapsed:");
-            for(int i = 1; i < 6; ++i)
+            for(int i = 1; i < 7; ++i)
             {
                 Console.WriteLine("{0}) {1}", i + 1, elapsedSums[i] / passesCount);
             }
