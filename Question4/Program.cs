@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,6 +17,8 @@ namespace Question4
             var rand = new Random();
             var receptions = Enumerable.Range(1, s_count).SelectMany(pid => Enumerable.Range(1, rand.Next(0, 100)).Select(rid => new { PatientId = pid, ReceptionStart = new DateTime(2017, 06, 30).AddDays(-rand.Next(1, 500)) })).ToList();
             var patients = Enumerable.Range(1, s_count).Select(pid => new { Id = pid, Surname = string.Format("Иванов{0}", pid) }).ToList();
+            List<TimeSpan> elapsedSums = Enumerable.Range(0, 7).Select(i => TimeSpan.Zero).ToList();
+#if !PARALLEL
 
             //Общая часть для вариантов 1-5: фильтруем по времени приёмы, выбираем уникальные PatientId
             //Сложность по времени: O(R) (линейный поиск по приёмам)
@@ -24,11 +27,11 @@ namespace Question4
                 .Where(rec => rec.ReceptionStart.CompareTo(s_yearLimit) < 0)
                 .Select(rec => rec.PatientId)
                 .Distinct();
-
-            List<TimeSpan> elapsedSums = Enumerable.Range(0, 7).Select(i => TimeSpan.Zero).ToList();
+#endif
             for (int i = 0; i < warmingPassesCount + passesCount; ++i)
             {
                 Console.WriteLine("pass: {0} {1}", i + 1, i < warmingPassesCount ? "warming" : string.Empty);
+#if !PARALLEL
                 //вариант 1: по каждому Id ищем пациента линейным поиском. Нет ограничений на порядок и непрерывность Id пациентов.
                 //Сложность по времени: O(R) + O(P * P)
                 //Дополнительная память: O(P)
@@ -148,17 +151,21 @@ namespace Question4
                     }
                     return ans;
                 }, i < warmingPassesCount ? null : elapsedSums, 5);
-                // Вариант 6: полагая, что Distinct() сделан через HashSet, реализуем Distinct() сами 
-                // через HashSet, который теперь в наших руках. Проходим по клиентам и выбираем тех, которые в нём.
+#endif
+                // Вариант 7: то же, что вариант 6, только параллельно.
                 Console.Write("7) ");
+                object stub = new();
+                int degreeOfParallelism = 12;
                 GetResult(() =>
                 {
-                    HashSet<int> hs = new();
-                    foreach (var rec in receptions.Where(rec => rec.ReceptionStart.CompareTo(s_yearLimit) < 0))
+                    ConcurrentDictionary<int, object> cd = new();
+                    receptions.AsParallel().WithDegreeOfParallelism(degreeOfParallelism)
+                        .Where(rec => rec.ReceptionStart.CompareTo(s_yearLimit) < 0).ForAll(rec =>
                     {
-                        hs.Add(rec.PatientId);
-                    }
-                    return patients.AsParallel().Where(p => hs.Contains(p.Id)).ToList<object>();
+                        cd.AddOrUpdate(rec.PatientId, stub, (k, v) => stub);
+                    });
+                    return patients.AsParallel().WithDegreeOfParallelism(degreeOfParallelism)
+                        .Where(p => cd.ContainsKey(p.Id)).ToList<object>();
                 }, i < warmingPassesCount ? null : elapsedSums, 6);
             }
             Console.WriteLine("avg elapsed:");
