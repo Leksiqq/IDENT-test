@@ -9,11 +9,7 @@ namespace TestQueries
     internal class Program
     {
         private const string s_connectionString = "Server=.\\sqlexpress;Database=IDENTClinic4;Trusted_Connection=True;Encrypt=no;";
-        static void Main(string[] args)
-        {
-            PerformQueries().Wait();
-        }
-        static async Task PerformQueries()
+        static async Task Main(string[] args)
         {
             SqlConnection connection = new(s_connectionString);
             DateTime start;
