@@ -8,19 +8,20 @@ namespace TestQueries
 {
     internal class Program
     {
-        private const string s_connectionString = "Server=.\\sqlexpress;Database=IDENTClinic4;Trusted_Connection=True;Encrypt=no;";
-        static async Task Main(string[] args)
+        private const string s_connectionString = 
+            "Server=.\\sqlexpress;Database=IDENTClinic4;Trusted_Connection=True;Encrypt=no;";
+        static void Main(string[] args)
         {
             SqlConnection connection = new(s_connectionString);
-            DateTime start;
-            SqlDataReader reader;
             try
             {
-                await connection.OpenAsync();
-                SqlCommand command = connection.CreateCommand();
-                command.CommandTimeout = 600;
+                connection.Open();
 
-                command.CommandText = @"
+                Action query1_1 = () =>
+                {
+                    SqlCommand command = connection.CreateCommand();
+                    command.CommandTimeout = 600;
+                    command.CommandText = @"
 with days as (
   select dateadd(day, value, cast('2015-01-01' as date)) as 'day' from   generate_series(0, 364, 1)
 )
@@ -35,36 +36,56 @@ receptions
 group by days.day
 order by Day
 ";
-                List<DayCount> list5 = new();
+                    List<DayCount> list = new();
 
-                start = DateTime.Now;
-                Console.WriteLine("1.1)");
-                reader = await command.ExecuteReaderAsync();
-                Console.WriteLine("reader executed at {0}", DateTime.Now - start);
-                while (await reader.ReadAsync())
+                    DateTime start = DateTime.Now;
+                    SqlDataReader reader = command.ExecuteReader();
+                    TimeSpan readerExecuted = DateTime.Now - start;
+                    while (reader.Read())
+                    {
+                        list.Add(new DayCount { Day = reader.GetDateTime(0), Count = reader.GetInt32(1) });
+                    }
+                    reader.Close();
+                    Console.WriteLine(
+                        $@"1.1) reader executed at {readerExecuted
+                        }
+done at {DateTime.Now - start
+                        }, count rows: {list.Count
+                        }, sum: {list.Select(x => x.Count).Sum()}"
+                    );
+                };
+
+                Action query1_2 = () =>
                 {
-                    list5.Add(new DayCount { Day = reader.GetDateTime(0), Count = reader.GetInt32(1) });
-                }
-                reader.Close();
-                Console.WriteLine("done at {0}, count rows: {1}, sum: {2}", DateTime.Now - start, list5.Count, list5.Select(x => x.Count).Sum());
-
-                command.CommandText = @"
+                    SqlCommand command = connection.CreateCommand();
+                    command.CommandTimeout = 600;
+                    command.CommandText = @"
 EXEC GetDailyReceptionsNum '20150101', '20151231'
 ";
-                List<DayCount> list4 = new();
+                    List<DayCount> list = new();
 
-                start = DateTime.Now;
-                Console.WriteLine("1.2)");
-                reader = await command.ExecuteReaderAsync();
-                Console.WriteLine("reader executed at {0}", DateTime.Now - start);
-                while (await reader.ReadAsync())
+                    DateTime start = DateTime.Now;
+                    SqlDataReader reader = command.ExecuteReader();
+                    TimeSpan readerExecuted = DateTime.Now - start;
+                    while (reader.Read())
+                    {
+                        list.Add(new DayCount { Day = reader.GetDateTime(0), Count = reader.GetInt32(1) });
+                    }
+                    reader.Close();
+                    Console.WriteLine(
+                        $@"1.1) reader executed at {readerExecuted
+                        }
+done at {DateTime.Now - start
+                        }, count rows: {list.Count
+                        }, sum: {list.Select(x => x.Count).Sum()}"
+                    );
+                };
+
+                Action query2_1 = () =>
                 {
-                    list4.Add(new DayCount { Day = reader.GetDateTime(0), Count = reader.GetInt32(1) });
-                }
-                reader.Close();
-                Console.WriteLine("done at {0}, count rows: {1}, sum: {2}", DateTime.Now - start, list5.Count, list4.Select(x => x.Count).Sum());
-
-                command.CommandText = @"
+                    SqlCommand command = connection.CreateCommand();
+                    command.CommandTimeout = 600;
+                    command.CommandText = @"
 select
   d.id as 'id_doc',
   per.lastname as 'doc_lastname', 
@@ -86,26 +107,34 @@ from
   persons per1	
     on p.id=per1.id
 ";
-                List<LastReception> list6 = new();
+                    List<LastReception> list = new();
 
-                start = DateTime.Now;
-                Console.WriteLine("2.1)");
-                reader = await command.ExecuteReaderAsync();
-                Console.WriteLine("reader executed at {0}", DateTime.Now - start);
-                while (await reader.ReadAsync())
-                {
-                    list6.Add(new LastReception
+                    DateTime start = DateTime.Now;
+                    SqlDataReader reader = command.ExecuteReader();
+                    TimeSpan readerExecuted = DateTime.Now - start;
+                    while (reader.Read())
                     {
-                        IdDoctor = reader.GetInt32(0),
-                        DoctorLastName = reader.GetString(1),
-                        IdPatient = reader.GetInt32(2),
-                        PatientLastName = reader.GetString(3),
-                    });
-                }
-                await reader.CloseAsync();
-                Console.WriteLine("done at {0}, count rows: {1}", DateTime.Now - start, list6.Count);
-
-                command.CommandText = @"
+                        list.Add(new LastReception
+                        {
+                            IdDoctor = reader.GetInt32(0),
+                            DoctorLastName = reader.GetString(1),
+                            IdPatient = reader.GetInt32(2),
+                            PatientLastName = reader.GetString(3),
+                        });
+                    }
+                    reader.Close();
+                    Console.WriteLine(
+                        $@"2.1) reader executed at {readerExecuted
+                        }
+done at {DateTime.Now - start
+                        }, count rows: {list.Count}"
+                    );
+                };
+                Action query2_2 = () =>
+                {
+                    SqlCommand command = connection.CreateCommand();
+                    command.CommandTimeout = 600;
+                    command.CommandText = @"
 select
   d.id as 'id_doc',
   per.lastname as 'doc_lastname',
@@ -130,28 +159,36 @@ from
   persons per1    
     on p.id=per1.id
 ";
-                List<LastReception> list7 = new();
+                    List<LastReception> list = new();
 
-                start = DateTime.Now;
-                Console.WriteLine("2.2)");
-                reader = await command.ExecuteReaderAsync();
-                Console.WriteLine("reader executed at {0}", DateTime.Now - start);
-                while (await reader.ReadAsync())
-                {
-                    list7.Add(new LastReception
+                    DateTime start = DateTime.Now;
+                    SqlDataReader reader = command.ExecuteReader();
+                    TimeSpan readerExecuted = DateTime.Now - start;
+                    while (reader.Read())
                     {
-                        IdDoctor = reader.GetInt32(0),
-                        DoctorLastName = reader.GetString(1),
-                        IdPatient = reader.GetInt32(2),
-                        PatientLastName = reader.GetString(3),
-                        StartDayTime = reader.GetDateTime(4),
-                    });
-                }
-                await reader.CloseAsync();
-                Console.WriteLine("done at {0}, count rows: {1}", DateTime.Now - start, list7.Count);
+                        list.Add(new LastReception
+                        {
+                            IdDoctor = reader.GetInt32(0),
+                            DoctorLastName = reader.GetString(1),
+                            IdPatient = reader.GetInt32(2),
+                            PatientLastName = reader.GetString(3),
+                            StartDayTime = reader.GetDateTime(4),
+                        });
+                    }
+                    reader.Close();
+                    Console.WriteLine(
+                        $@"2.2) reader executed at {readerExecuted
+                        }
+done at {DateTime.Now - start
+                        }, count rows: {list.Count}"
+                    );
+                };
 
-
-                command.CommandText = @"
+                Action query2_3 = () =>
+                {
+                    SqlCommand command = connection.CreateCommand();
+                    command.CommandTimeout = 600;
+                    command.CommandText = @"
 select
   d.id as 'id_doc',
   per.lastname as 'doc_lastname', 
@@ -173,27 +210,36 @@ from
   persons per1	
 	on r1.id_patients=per1.id
 ";
-                List<LastReception> list10 = new();
+                    List<LastReception> list = new();
 
-                start = DateTime.Now;
-                Console.WriteLine("2.3)");
-                reader = await command.ExecuteReaderAsync();
-                Console.WriteLine("reader executed at {0}", DateTime.Now - start);
-                while (await reader.ReadAsync())
-                {
-                    list10.Add(new LastReception
+                    DateTime start = DateTime.Now;
+                    SqlDataReader reader = command.ExecuteReader();
+                    TimeSpan readerExecuted = DateTime.Now - start;
+                    while (reader.Read())
                     {
-                        IdDoctor = reader.GetInt32(0),
-                        DoctorLastName = reader.GetString(1),
-                        IdPatient = reader.GetInt32(2),
-                        PatientLastName = reader.GetString(3),
-                        StartDayTime = reader.GetDateTime(4),
-                    });
-                }
-                await reader.CloseAsync();
-                Console.WriteLine("done at {0}, count rows: {1}", DateTime.Now - start, list10.Count);
+                        list.Add(new LastReception
+                        {
+                            IdDoctor = reader.GetInt32(0),
+                            DoctorLastName = reader.GetString(1),
+                            IdPatient = reader.GetInt32(2),
+                            PatientLastName = reader.GetString(3),
+                            StartDayTime = reader.GetDateTime(4),
+                        });
+                    }
+                    reader.Close();
+                    Console.WriteLine(
+                        $@"2.3) reader executed at {readerExecuted
+                        }
+done at {DateTime.Now - start
+                        }, count rows: {list.Count}"
+                    );
+                };
 
-                command.CommandText = @"
+                Action query2_4 = () =>
+                {
+                    SqlCommand command = connection.CreateCommand();
+                    command.CommandTimeout = 600;
+                    command.CommandText = @"
 select
   d.id as 'id_doc',
   per.lastname as 'doc_lastname',
@@ -214,25 +260,36 @@ from
     inner join
   persons per1    
     on p.id=per1.id";
-                List<LastReception> list11 = new();
+                    List<LastReception> list = new();
 
-                start = DateTime.Now;
-                Console.WriteLine("2.4)");
-                reader = await command.ExecuteReaderAsync();
-                Console.WriteLine("reader executed at {0}", DateTime.Now - start);
-                while (await reader.ReadAsync())
-                {
-                    list11.Add(new LastReception
+                    DateTime start = DateTime.Now;
+                    SqlDataReader reader = command.ExecuteReader();
+                    TimeSpan readerExecuted = DateTime.Now - start;
+                    while (reader.Read())
                     {
-                        IdDoctor = reader.GetInt32(0),
-                        DoctorLastName = reader.GetString(1),
-                        IdPatient = reader.GetInt32(2),
-                        PatientLastName = reader.GetString(3),
-                        StartDayTime = reader.GetDateTime(4),
-                    });
-                }
-                await reader.CloseAsync();
-                Console.WriteLine("done at {0}, count rows: {1}", DateTime.Now - start, list11.Count);
+                        list.Add(new LastReception
+                        {
+                            IdDoctor = reader.GetInt32(0),
+                            DoctorLastName = reader.GetString(1),
+                            IdPatient = reader.GetInt32(2),
+                            PatientLastName = reader.GetString(3),
+                            StartDayTime = reader.GetDateTime(4),
+                        });
+                    }
+                    reader.Close();
+                    Console.WriteLine(
+                        $@"2.4) reader executed at {readerExecuted
+                        }
+done at {DateTime.Now - start
+                        }, count rows: {list.Count}"
+                    );
+                };
+                query1_1();
+                query1_2();
+                query2_1();
+                query2_2();
+                query2_3();
+                query2_4();
 
             }
             catch (SqlException ex)
@@ -241,7 +298,7 @@ from
             }
             finally
             {
-                await connection.CloseAsync();
+                connection.CloseAsync();
             }
         }
     }
