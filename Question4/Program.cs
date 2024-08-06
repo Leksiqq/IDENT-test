@@ -162,7 +162,10 @@ namespace Question4
                     receptions.AsParallel().WithDegreeOfParallelism(degreeOfParallelism)
                         .Where(rec => rec.ReceptionStart.CompareTo(s_yearLimit) < 0).ForAll(rec =>
                     {
-                        cd.AddOrUpdate(rec.PatientId, stub, (k, v) => stub);
+                        if(!cd.ContainsKey(rec.PatientId))
+                        {
+                            cd.AddOrUpdate(rec.PatientId, stub, (k, v) => stub);
+                        }
                     });
                     return patients.AsParallel().WithDegreeOfParallelism(degreeOfParallelism)
                         .Where(p => cd.ContainsKey(p.Id)).ToList<object>();
